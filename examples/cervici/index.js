@@ -37,6 +37,7 @@ var appState = {
         width: width,
         height: height,
         state: Consts.GAME_STATE.IDLE,
+        countdownStamp: null,
         board: (function() {
             var arr = [];
             for (var i = 0; i < width * height; i++) {
@@ -104,10 +105,12 @@ io.on('connection', function(socket) {
 
         if (isUserGlobalStateReady()) {
             console.log('everybody ready!');
-            // io.emit('GAME_STATE_CHANGED', appState.game);
-        } else {
-            console.log('somebody not ready!');
-            // io.emit('GAME_STATE_CHANGED', appState.game);
+            if (appState.game.state === Consts.GAME_STATE.IDLE) {
+                console.log('starting countdown!');
+                appState.game.state = Consts.GAME_STATE.COUNTDOWN;
+                appState.game.countdownStamp = Date.now();
+                io.emit('GAME_STATE_CHANGED', appState.game.state); // TODO change this back!!!
+            }
         }
     });
 
