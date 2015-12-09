@@ -9,3 +9,5 @@ lib-cov
 benchmarks/*.png
 node_modules
 coverage
+examples/chat/node_modules
+examples/cervici/node_modules
