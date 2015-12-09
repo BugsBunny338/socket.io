@@ -7,6 +7,8 @@ server.listen(port, function () {
 
 var io = require('../..')(server);
 
+var counterId = 1; // id
+
 var appState = {
     users: [] // {id, nick, color}
 };
@@ -17,25 +19,31 @@ var COLORS = [
     '#3b88eb', '#3824aa', '#a700ff', '#d300e7'
 ];
 
-io.on('connection', function (socket) {
+io.on('connection', function(socket) {
     // console.log('someone connected!!!');
     // socket.emit('welcome message', { foo: 'bar' });
     // socket.broadcast.emit('welcome message (broadcast)', { foo: 'bar' });
 
     var addedUser = false;
 
-    socket.on('login', function (username) {
+    socket.emit('CONNECTED', {
+        users: appState.users
+        // , id: socket.userId
+    });
+
+    socket.on('LOGIN', function (username) {
         if (addedUser) return;
 
         console.log(username + ' logged in!');
 
         // we store the id in the socket session for this client
-        socket.id = Date.now();
+        // socket.id = getUniqueId();
 
         addedUser = true;
+        socket.userId = getUniqueId();
 
         appState.users.push({
-            id: socket.id,
+            id: socket.userId,
             username: username,
             color: COLORS[appState.users.length]
         });
@@ -50,34 +58,42 @@ io.on('connection', function (socket) {
 
         // echo globally (all clients) that a person has connected
         socket.broadcast.emit('USER_JOINED', {
-            id: appState.users[appState.users.length - 1].id,
             users: appState.users
         });
     });
 
     // when the user disconnects.. perform this
-    socket.on('disconnect', function () {
+    socket.on('LOGOUT', function () {
         if (addedUser) {
 
-            console.log(getUserById(socket.id) + ' logged out!');
+            console.log(socket.userId);
+            console.log(getUserById(socket.userId) + ' logged out!');
 
             appState.users = appState.users.filter(function(user) {
-                return user.id !== socket.id
+                return user.id !== socket.userId
             });
 
             console.log('number of users: ' + appState.users.length);
 
             // echo globally that this client has left
             socket.broadcast.emit('USER_LEFT', {
-                id: socket.id,
+                id: socket.userId,
                 users: appState.users
             });
+
+            addedUser = false;
+            // delete socket.userId;
         }
     });
 });
 
 function getUserById(id) {
     return appState.users.find(function(user) {
+        console.log(user.id);
         user.id === id;
     });
+}
+
+function getUniqueId() {
+    return counterId++;
 }
