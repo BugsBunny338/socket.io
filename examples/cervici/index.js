@@ -88,12 +88,14 @@ io.on('connection', function(socket) {
     socket.on('USER_STATE', function(newState) {
         var user = getUserById(socket.userId);
 
+        console.log(user.username + ' changing state from ' + user.state + ' to ' + newState + '!');
+
         if (user.state === newState) return;
 
-        console.log(user.username + ' changing state to ' + newState + '!');
+        // console.log(user.username + ' changing state to ' + newState + '!');
 
         updateUserById(socket.userId, {
-            state: Consts.USER_STATE.READY
+            state: newState
         });
 
         io.emit('USER_STATE_CHANGED', {
@@ -101,8 +103,11 @@ io.on('connection', function(socket) {
         });
 
         if (isUserGlobalStateReady()) {
-            console.log('everybody ready!')
-            io.emit('GAME_STATE_CHANGED', appState.game);
+            console.log('everybody ready!');
+            // io.emit('GAME_STATE_CHANGED', appState.game);
+        } else {
+            console.log('somebody not ready!');
+            // io.emit('GAME_STATE_CHANGED', appState.game);
         }
     });
 
