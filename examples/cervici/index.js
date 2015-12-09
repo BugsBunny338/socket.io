@@ -24,20 +24,17 @@ io.on('connection', function(socket) {
     // socket.emit('welcome message', { foo: 'bar' });
     // socket.broadcast.emit('welcome message (broadcast)', { foo: 'bar' });
 
-    var addedUser = false;
-
     socket.emit('CONNECTED', {
         users: appState.users
     });
 
     socket.on('LOGIN', function (username) {
-        if (addedUser) return;
+        if (socket.userId) return;
 
         console.log(username + ' logged in!');
 
         // we store the userId in the socket session for this client
         socket.userId = getUniqueId();
-        addedUser = true;
 
         appState.users.push({
             id: socket.userId,
@@ -60,8 +57,11 @@ io.on('connection', function(socket) {
     });
 
     // when the user disconnects.. perform this
-    socket.on('disconnect', function() {
-        if (addedUser) {
+    socket.on('disconnect', logoutFn);
+    socket.on('LOGOUT', logoutFn);
+
+    function logoutFn() {
+        if (socket.userId) {
 
             console.log(socket.userId);
             console.log(getUserById(socket.userId) + ' logged out!');
@@ -78,32 +78,9 @@ io.on('connection', function(socket) {
                 users: appState.users
             });
 
-            addedUser = false;
             delete socket.userId;
         }
-    });
-    socket.on('LOGOUT', function() {
-        if (addedUser) {
-
-            console.log(socket.userId);
-            console.log(getUserById(socket.userId) + ' logged out!');
-
-            appState.users = appState.users.filter(function(user) {
-                return user.id !== socket.userId
-            });
-
-            console.log('number of users: ' + appState.users.length);
-
-            // echo globally that this client has left
-            io.emit('USER_LEFT', {
-                id: socket.userId,
-                users: appState.users
-            });
-
-            addedUser = false;
-            delete socket.userId;
-        }
-    });
+    }
 });
 
 function getUserById(id) {
