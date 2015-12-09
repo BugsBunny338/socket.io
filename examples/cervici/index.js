@@ -18,7 +18,7 @@ var COLORS = [
 ];
 
 io.on('connection', function (socket) {
-    console.log('someone connected!!!');
+    // console.log('someone connected!!!');
     // socket.emit('welcome message', { foo: 'bar' });
     // socket.broadcast.emit('welcome message (broadcast)', { foo: 'bar' });
 
@@ -40,6 +40,8 @@ io.on('connection', function (socket) {
             color: COLORS[appState.users.length - 1]
         })
 
+        console.log('number of users: ' + appState.users.length);
+
         // echo total number of users to the client
         socket.emit('USER_LOGGED', {
             id: appState.users[appState.users.length - 1].id,
@@ -57,13 +59,13 @@ io.on('connection', function (socket) {
     socket.on('disconnect', function () {
         if (addedUser) {
 
-            console.log(appState.users.length);
-            
+            console.log(getUserById(socket.id) + ' logged out!');
+
             appState.users = appState.users.filter(function(user) {
                 return user.id !== socket.id
             });
 
-            console.log(appState.users.length);
+            console.log('number of users: ' + appState.users.length);
 
             // echo globally that this client has left
             socket.broadcast.emit('USER_LEFT', {
@@ -73,3 +75,9 @@ io.on('connection', function (socket) {
         }
     });
 });
+
+function getUserById(id) {
+    return appState.users.find(function(user) {
+        user.id === id;
+    });
+}
