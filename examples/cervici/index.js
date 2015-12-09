@@ -37,8 +37,8 @@ io.on('connection', function (socket) {
         appState.users.push({
             id: socket.id,
             username: username,
-            color: COLORS[appState.users.length - 1]
-        })
+            color: COLORS[appState.users.length]
+        });
 
         console.log('number of users: ' + appState.users.length);
 
